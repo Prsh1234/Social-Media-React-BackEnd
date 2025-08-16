@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/friend")
@@ -85,6 +86,12 @@ public class FriendController {
             ));
         }
 
+        // 1. Get all friends of the current user
+        List<Friend> friendsOfUser = friendRepository.findByUserIdOrFriendId(userId, userId);
+        Set<Integer> currentUserFriendIds = friendsOfUser.stream()
+                .map(f -> (f.getUser().getId() == userId) ? f.getFriend().getId() : f.getUser().getId())
+                .collect(Collectors.toSet());
+
         List<FriendRequestListDTO> senderList = friendRequestRepository.findByReceiver(receiver)
                 .stream()
                 .map(req -> {
@@ -95,14 +102,26 @@ public class FriendController {
                     if (sender.getProfilePic() != null) {
                         dto.setProfilePic(Base64.getEncoder().encodeToString(sender.getProfilePic()));
                     }
+
+                    // 2. Calculate mutual friends
+                    List<Friend> friendsOfSender = friendRepository.findByUserIdOrFriendId(sender.getId(), sender.getId());
+                    Set<Integer> senderFriendIds = friendsOfSender.stream()
+                            .map(f -> (f.getUser().getId() == sender.getId()) ? f.getFriend().getId() : f.getUser().getId())
+                            .collect(Collectors.toSet());
+
+                    senderFriendIds.retainAll(currentUserFriendIds);
+                    dto.setMutual(senderFriendIds.size());
+
                     return dto;
-                }).toList();
+                })
+                .toList();
 
         return ResponseEntity.ok(Map.of(
                 "success", true,
                 "data", senderList
         ));
     }
+
 
     @PostMapping("/acceptrequest")
     public ResponseEntity<?> acceptFriendRequest(@RequestParam int requestId) {
@@ -157,6 +176,8 @@ public class FriendController {
     }
 
 
+
+
     @GetMapping("/getfriends")
     public ResponseEntity<Map<String, Object>> getFriendsByUserId(@RequestParam int userId) {
         User currentUser = userRepository.findById(userId).orElse(null);
@@ -168,18 +189,23 @@ public class FriendController {
             ));
         }
 
-        List<Friend> friends = friendRepository.findByUserIdOrFriendId(userId, userId);
+        // 1. Get all friends of the current user
+        List<Friend> friendsOfUser = friendRepository.findByUserIdOrFriendId(userId, userId);
 
-        // Use a Set to prevent duplicates
+        Set<Integer> currentUserFriendIds = friendsOfUser.stream()
+                .map(f -> (f.getUser().getId() == userId) ? f.getFriend().getId() : f.getUser().getId())
+                .collect(Collectors.toSet());
+
+        // 2. Build friend list with mutual friend counts
         Set<Integer> seenIds = new HashSet<>();
 
-        List<UserDTO> friendList = friends.stream()
+        List<UserDTO> friendList = friendsOfUser.stream()
                 .map(friend -> {
                     User otherUser = (friend.getUser().getId() == userId)
                             ? friend.getFriend()
                             : friend.getUser();
 
-                    // Skip if already added
+                    // Skip duplicates
                     if (!seenIds.add(otherUser.getId())) {
                         return null;
                     }
@@ -198,9 +224,19 @@ public class FriendController {
                         dto.setCoverPhoto(Base64.getEncoder().encodeToString(otherUser.getCoverPhoto()));
                     }
 
+                    // Calculate mutual friends
+                    List<Friend> friendsOfOther = friendRepository.findByUserIdOrFriendId(otherUser.getId(), otherUser.getId());
+                    Set<Integer> otherFriendIds = friendsOfOther.stream()
+                            .map(f -> (f.getUser().getId() == otherUser.getId()) ? f.getFriend().getId() : f.getUser().getId())
+                            .collect(Collectors.toSet());
+
+                    // Count intersection
+                    otherFriendIds.retainAll(currentUserFriendIds);
+                    dto.setMutual(otherFriendIds.size());
+
                     return dto;
                 })
-                .filter(Objects::nonNull) // remove skipped duplicates
+                .filter(Objects::nonNull)
                 .toList();
 
         return ResponseEntity.ok(Map.of(

@@ -8,16 +8,14 @@ import com.example.model.User;
 import com.example.repository.FriendRepository;
 import com.example.repository.PostRepository;
 import com.example.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Base64;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/post")
@@ -64,7 +62,7 @@ public class PostController {
             dto.setId(post.getId());
             dto.setContent(post.getContent());
             dto.setUserName(post.getUser().getUserName());
-            dto.setEmail(post.getUser().getEmail());
+            dto.setPosterId(post.getUser().getId());
 
             if (post.getUser().getProfilePic() != null) {
                 dto.setProfilePic(Base64.getEncoder().encodeToString(post.getUser().getProfilePic()));
@@ -104,7 +102,8 @@ public class PostController {
             dto.setId(post.getId());
             dto.setContent(post.getContent());
             dto.setUserName(post.getUser().getUserName());
-            dto.setEmail(post.getUser().getEmail());
+            dto.setPosterId(post.getUser().getId());
+
             if (post.getUser().getProfilePic() != null) {
                 dto.setProfilePic(Base64.getEncoder().encodeToString(post.getUser().getProfilePic()));
             }
@@ -115,6 +114,34 @@ public class PostController {
         }).toList();
 
         return ResponseEntity.ok(postDTOs);
+    }
+    @DeleteMapping("/deletepost")
+    @Transactional
+    public ResponseEntity<?> deletePost(@RequestParam int postId, @RequestParam int userId) {
+        // 1. Fetch the post
+        Post post = pRepo.findById(postId).orElse(null);
+        if (post == null) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Post not found"
+            ));
+        }
+
+        // 2. Check if the user is the owner of the post
+        if (post.getUser().getId() != userId) {
+            return ResponseEntity.status(403).body(Map.of(
+                    "success", false,
+                    "message", "You are not authorized to delete this post"
+            ));
+        }
+
+        // 3. Delete the post
+        pRepo.delete(post);
+
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Post deleted successfully"
+        ));
     }
 
 

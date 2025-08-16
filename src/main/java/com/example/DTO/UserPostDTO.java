@@ -2,9 +2,9 @@ package com.example.DTO;
 
 public class UserPostDTO {
     private int id;
+    private int posterId;
     private String content;
     private String userName;
-    private String email;
     private String imageBase64; // optional Base64 image
     private String profilePic; // optional Base64 image
 
@@ -19,8 +19,6 @@ public class UserPostDTO {
     public String getUserName() { return userName; }
     public void setUserName(String userName) { this.userName = userName; }
 
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
 
     public String getImageBase64() { return imageBase64; }
     public void setImageBase64(String imageBase64) { this.imageBase64 = imageBase64; }
@@ -32,4 +30,11 @@ public class UserPostDTO {
         this.profilePic = profilePic;
     }
 
+    public int getPosterId() {
+        return posterId;
+    }
+
+    public void setPosterId(int posterId) {
+        this.posterId = posterId;
+    }
 }

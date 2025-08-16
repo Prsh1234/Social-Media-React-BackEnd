@@ -4,6 +4,7 @@ public class UserDTO {
     private int id;
     private String email;
     private String userName;
+    private int mutual;
 
     public int getId() {
         return id;
@@ -60,8 +61,15 @@ public class UserDTO {
     public String getLastName() {
         return lastName;
     }
-
     public void setLastName(String lastName) {
         this.lastName = lastName;
+    }
+
+    public int getMutual() {
+        return mutual;
+    }
+
+    public void setMutual(int mutual) {
+        this.mutual = mutual;
     }
 }

@@ -5,6 +5,8 @@ public class FriendRequestListDTO {
     private String userName;
     private String profilePic; // optional Base64 image
 
+    private int mutual;
+
     public String getUserName() {
         return userName;
     }
@@ -28,4 +30,11 @@ public class FriendRequestListDTO {
         this.profilePic = profilePic;
     }
 
+    public int getMutual() {
+        return mutual;
+    }
+
+    public void setMutual(int mutual) {
+        this.mutual = mutual;
+    }
 }
