@@ -8,6 +8,8 @@ public class UserPostDTO {
     private String imageBase64; // optional Base64 image
     private String profilePic; // optional Base64 image
 
+    private int likeCount;
+    private boolean liked;
 
     // getters and setters
     public int getId() { return id; }
@@ -36,5 +38,21 @@ public class UserPostDTO {
 
     public void setPosterId(int posterId) {
         this.posterId = posterId;
+    }
+
+    public int getLikeCount() {
+        return likeCount;
+    }
+
+    public void setLikeCount(int likeCount) {
+        this.likeCount = likeCount;
+    }
+
+    public boolean isLiked() {
+        return liked;
+    }
+
+    public void setLiked(boolean liked) {
+        this.liked = liked;
     }
 }

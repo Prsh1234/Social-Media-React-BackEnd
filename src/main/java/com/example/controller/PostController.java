@@ -3,9 +3,11 @@ package com.example.controller;
 
 import com.example.DTO.UserPostDTO;
 import com.example.model.Friend;
+import com.example.model.Like;
 import com.example.model.Post;
 import com.example.model.User;
 import com.example.repository.FriendRepository;
+import com.example.repository.LikeRepository;
 import com.example.repository.PostRepository;
 import com.example.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -27,6 +29,9 @@ public class PostController {
     private UserRepository uRepo; // to fetch User entity
     @Autowired
     private FriendRepository fRepo;
+    @Autowired
+    private LikeRepository lRepo;
+
 
     @PostMapping(value = "/contentpost", consumes = {"multipart/form-data"})
     public ResponseEntity<String> postContent(@RequestParam("content") String content,
@@ -103,7 +108,8 @@ public class PostController {
             dto.setContent(post.getContent());
             dto.setUserName(post.getUser().getUserName());
             dto.setPosterId(post.getUser().getId());
-
+            dto.setLikeCount(lRepo.countByPostId(post.getId()));
+            dto.setLiked(lRepo.findByUserIdAndPostId(userId, post.getId()).isPresent());
             if (post.getUser().getProfilePic() != null) {
                 dto.setProfilePic(Base64.getEncoder().encodeToString(post.getUser().getProfilePic()));
             }
@@ -142,6 +148,26 @@ public class PostController {
                 "success", true,
                 "message", "Post deleted successfully"
         ));
+    }
+    @PostMapping("/like")
+    public ResponseEntity<?> toggleLike(@RequestParam int postId, @RequestParam int userId) {
+        Optional<Like> existing = lRepo.findByUserIdAndPostId(userId, postId);
+        if (existing.isPresent()) {
+            lRepo.delete(existing.get());
+            return ResponseEntity.ok(Map.of(
+                    "liked", false,
+                    "likeCount", lRepo.countByPostId(postId)
+            ));
+        } else {
+            Like like = new Like();
+            like.setPost(pRepo.findById(postId).orElseThrow());
+            like.setUser(uRepo.findById(userId).orElseThrow());
+            lRepo.save(like);
+            return ResponseEntity.ok(Map.of(
+                    "liked", true,
+                    "likeCount", lRepo.countByPostId(postId)
+            ));
+        }
     }
 
 
