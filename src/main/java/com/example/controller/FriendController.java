@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/friend")
-@CrossOrigin(origins = "http://localhost:3000") // adjust if needed
+
 public class FriendController {
 
     @Autowired

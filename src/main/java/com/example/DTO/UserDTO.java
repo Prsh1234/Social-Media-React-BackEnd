@@ -13,6 +13,15 @@ public class UserDTO {
     private String profilePic; // optional Base64 image
     private String firstName;
     private String lastName;
+    private String role; // instead of Role enum
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
 
     public void setId(int id) {
         this.id = id;

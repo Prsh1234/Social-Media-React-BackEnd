@@ -2,6 +2,9 @@ package com.example.model;
 
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 public class User {
     @Id
@@ -25,7 +28,38 @@ public class User {
     @Lob
     @Column(name = "coverPhoto", columnDefinition = "LONGBLOB")
     private byte[] coverPhoto;
+    @Enumerated(EnumType.STRING)   // store as text ("USER", "ADMIN")
+    private Role role = Role.USER; // default USER
 
+
+    //for cascade delete
+    //for posts
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Post> posts = new ArrayList<>();
+    //for comments
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Comment> comments = new ArrayList<>();
+    //for likes
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Like> likes = new ArrayList<>();
+
+    //both for chatmessages
+    @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ChatMessage> sentMessages = new ArrayList<>();
+    @OneToMany(mappedBy = "receiver", cascade = CascadeType.ALL, orphanRemoval = true)
+
+    //both for friend requests
+    private List<ChatMessage> receivedMessages = new ArrayList<>();
+    @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<FriendRequest> sentFriendRequests = new ArrayList<>();
+    @OneToMany(mappedBy = "receiver", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<FriendRequest> receivedFriendRequests = new ArrayList<>();
+
+    //both for friends
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Friend> friends = new ArrayList<>();
+    @OneToMany(mappedBy = "friend", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Friend> friendOf = new ArrayList<>();
 
     public User() {
     }
@@ -51,42 +85,40 @@ public class User {
     public void setPassword(String password) {
         this.password = password;
     }
-
     public String getFirstName() {
         return firstName;
     }
     public void setFirstName(String firstName) {
         this.firstName = firstName;
     }
-
     public String getLastName() {
         return lastName;
     }
     public void setLastName(String lastName) {
         this.lastName = lastName;
     }
-
     public String getUserName() {
         return userName;
     }
     public void setUserName(String userName) {
         this.userName = userName;
     }
-
-
     public byte[] getProfilePic() {
         return profilePic;
     }
-
     public void setProfilePic(byte[] profilePic) {
         this.profilePic = profilePic;
     }
-
     public byte[] getCoverPhoto() {
         return coverPhoto;
     }
-
     public void setCoverPhoto(byte[] coverPhoto) {
         this.coverPhoto = coverPhoto;
+    }
+    public Role getRole() {
+        return role;
+    }
+    public void setRole(Role role) {
+        this.role = role;
     }
 }

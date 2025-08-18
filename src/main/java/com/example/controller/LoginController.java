@@ -8,12 +8,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "http://localhost:3000")
 public class LoginController {
 
     @Autowired
@@ -37,10 +37,13 @@ public class LoginController {
                     .body(Map.of("error", "Invalid email or password"));
         }
         String token = jwtUtil.generateToken(user.getEmail());
+        System.out.println(user.getRole().name());
         return ResponseEntity.ok(Map.of(
                 "token", token,
-                "userId", user.getId()
+                "userId", user.getId(),
+                "role", user.getRole().name()
         ));
     }
+
 
 }

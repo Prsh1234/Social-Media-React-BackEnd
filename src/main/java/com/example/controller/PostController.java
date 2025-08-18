@@ -21,7 +21,7 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/api/post")
-@CrossOrigin(origins = "http://localhost:3000")
+
 public class PostController {
     @Autowired
     private PostRepository pRepo;

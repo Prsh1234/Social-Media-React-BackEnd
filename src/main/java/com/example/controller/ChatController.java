@@ -14,7 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/chat")
-@CrossOrigin(origins = "http://localhost:3000")
+
 public class ChatController {
     @Autowired
     private ChatMessageRepository chatMessageRepository;

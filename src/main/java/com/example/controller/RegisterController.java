@@ -14,8 +14,7 @@ import com.example.model.User;
 import com.example.repository.UserRepository;
 
 @RestController
-@RequestMapping("/api")
-@CrossOrigin(origins = "http://localhost:3000") // allow React dev server
+@RequestMapping("/api/auth")
 public class RegisterController {
 
     @Autowired
@@ -30,7 +29,6 @@ public class RegisterController {
             System.out.println("User Exists");
             return new ApiResponse(false, "Email already signed up");
         }
-        System.out.println("reached");
         // Hash password
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         u.setPassword(encoder.encode(u.getPassword()));
