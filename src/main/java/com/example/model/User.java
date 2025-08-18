@@ -47,9 +47,9 @@ public class User {
     @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ChatMessage> sentMessages = new ArrayList<>();
     @OneToMany(mappedBy = "receiver", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ChatMessage> receivedMessages = new ArrayList<>();
 
     //both for friend requests
-    private List<ChatMessage> receivedMessages = new ArrayList<>();
     @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<FriendRequest> sentFriendRequests = new ArrayList<>();
     @OneToMany(mappedBy = "receiver", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -60,6 +60,10 @@ public class User {
     private List<Friend> friends = new ArrayList<>();
     @OneToMany(mappedBy = "friend", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Friend> friendOf = new ArrayList<>();
+
+    //for reports
+    @OneToMany(mappedBy = "reporter", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Report> reports = new ArrayList<>();
 
     public User() {
     }

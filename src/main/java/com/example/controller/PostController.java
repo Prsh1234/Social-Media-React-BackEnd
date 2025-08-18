@@ -6,10 +6,7 @@ import com.example.model.Friend;
 import com.example.model.Like;
 import com.example.model.Post;
 import com.example.model.User;
-import com.example.repository.FriendRepository;
-import com.example.repository.LikeRepository;
-import com.example.repository.PostRepository;
-import com.example.repository.UserRepository;
+import com.example.repository.*;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -31,7 +28,8 @@ public class PostController {
     private FriendRepository fRepo;
     @Autowired
     private LikeRepository lRepo;
-
+    @Autowired
+    private ReportRepository rRepo;
 
     @PostMapping(value = "/contentpost", consumes = {"multipart/form-data"})
     public ResponseEntity<String> postContent(@RequestParam("content") String content,
@@ -62,34 +60,33 @@ public class PostController {
     public ResponseEntity<List<UserPostDTO>> getPostsByUser(@RequestParam int posterId) {
         List<Post> posts = pRepo.findByUserId(posterId);
 
-        List<UserPostDTO> postDTOs = posts.stream().map(post -> {
-            UserPostDTO dto = new UserPostDTO();
-            dto.setId(post.getId());
-            dto.setContent(post.getContent());
-            dto.setUserName(post.getUser().getUserName());
-            dto.setPosterId(post.getUser().getId());
+        List<UserPostDTO> postDTOs = posts.stream()
+                .filter(post -> !rRepo.existsByPostId(post.getId())) // exclude reported
+                .map(post -> {
+                    UserPostDTO dto = new UserPostDTO();
+                    dto.setId(post.getId());
+                    dto.setContent(post.getContent());
+                    dto.setUserName(post.getUser().getUserName());
+                    dto.setPosterId(post.getUser().getId());
 
-            if (post.getUser().getProfilePic() != null) {
-                dto.setProfilePic(Base64.getEncoder().encodeToString(post.getUser().getProfilePic()));
-            }
-
-            if (post.getImage() != null) {
-                dto.setImageBase64(Base64.getEncoder().encodeToString(post.getImage()));
-            }
-            return dto;
-        }).toList();
+                    if (post.getUser().getProfilePic() != null) {
+                        dto.setProfilePic(Base64.getEncoder().encodeToString(post.getUser().getProfilePic()));
+                    }
+                    if (post.getImage() != null) {
+                        dto.setImageBase64(Base64.getEncoder().encodeToString(post.getImage()));
+                    }
+                    return dto;
+                }).toList();
 
         return ResponseEntity.ok(postDTOs);
     }
 
     @GetMapping("/timelineposts")
     public ResponseEntity<List<UserPostDTO>> getTimeline(@RequestParam int userId) {
-        // Step 1: Get all friend relationships for this user
         List<Friend> friends = fRepo.findByUserIdOrFriendId(userId, userId);
 
-        // Step 2: Build a set of all user IDs (the user + their friends)
         Set<Integer> userIds = new HashSet<>();
-        userIds.add(userId); // include self
+        userIds.add(userId);
         for (Friend f : friends) {
             if (f.getUser().getId() == userId) {
                 userIds.add(f.getFriend().getId());
@@ -98,29 +95,31 @@ public class PostController {
             }
         }
 
-        // Step 3: Get posts for all these user IDs
         List<Post> posts = pRepo.findByUserIdInOrderByCreatedAtDesc(userIds);
 
-        // Step 4: Convert to DTO
-        List<UserPostDTO> postDTOs = posts.stream().map(post -> {
-            UserPostDTO dto = new UserPostDTO();
-            dto.setId(post.getId());
-            dto.setContent(post.getContent());
-            dto.setUserName(post.getUser().getUserName());
-            dto.setPosterId(post.getUser().getId());
-            dto.setLikeCount(lRepo.countByPostId(post.getId()));
-            dto.setLiked(lRepo.findByUserIdAndPostId(userId, post.getId()).isPresent());
-            if (post.getUser().getProfilePic() != null) {
-                dto.setProfilePic(Base64.getEncoder().encodeToString(post.getUser().getProfilePic()));
-            }
-            if (post.getImage() != null) {
-                dto.setImageBase64(Base64.getEncoder().encodeToString(post.getImage()));
-            }
-            return dto;
-        }).toList();
+        List<UserPostDTO> postDTOs = posts.stream()
+                .filter(post -> !rRepo.existsByPostId(post.getId())) // exclude reported
+                .map(post -> {
+                    UserPostDTO dto = new UserPostDTO();
+                    dto.setId(post.getId());
+                    dto.setContent(post.getContent());
+                    dto.setUserName(post.getUser().getUserName());
+                    dto.setPosterId(post.getUser().getId());
+                    dto.setLikeCount(lRepo.countByPostId(post.getId()));
+                    dto.setLiked(lRepo.findByUserIdAndPostId(userId, post.getId()).isPresent());
+
+                    if (post.getUser().getProfilePic() != null) {
+                        dto.setProfilePic(Base64.getEncoder().encodeToString(post.getUser().getProfilePic()));
+                    }
+                    if (post.getImage() != null) {
+                        dto.setImageBase64(Base64.getEncoder().encodeToString(post.getImage()));
+                    }
+                    return dto;
+                }).toList();
 
         return ResponseEntity.ok(postDTOs);
     }
+
     @DeleteMapping("/deletepost")
     @Transactional
     public ResponseEntity<?> deletePost(@RequestParam int postId, @RequestParam int userId) {
