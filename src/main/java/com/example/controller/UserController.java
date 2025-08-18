@@ -160,4 +160,28 @@ public class UserController {
 
         return ResponseEntity.ok("Password updated successfully");
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<UserDTO>> searchUsers(
+            @RequestParam String username) {
+
+        List<User> matchedUsers = uRepo.findByUserNameContainingIgnoreCase(username);
+
+        List<UserDTO> userDTOs = matchedUsers.stream()
+                .map(user -> {
+                    UserDTO dto = new UserDTO();
+                    dto.setId(user.getId());
+                    dto.setUserName(user.getUserName());
+                    dto.setEmail(user.getEmail());
+                    if (user.getProfilePic() != null) {
+                        dto.setProfilePic(Base64.getEncoder().encodeToString(user.getProfilePic()));
+                    }
+                    return dto;
+                })
+                .toList();
+
+        return ResponseEntity.ok(userDTOs);
+    }
+
+
 }

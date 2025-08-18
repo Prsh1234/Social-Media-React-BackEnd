@@ -17,7 +17,7 @@ import jakarta.transaction.Transactional;
 @Repository
 public interface UserRepository extends JpaRepository<User, Integer>{
 	Optional<User> findByEmail(String email);
-	
+	List<User> findByUserNameContainingIgnoreCase(String username);
 //
 //	@Query("SELECT u FROM User u WHERE u.fname LIKE %:keyword% OR u.lname LIKE %:keyword%")
 //    List<User> searchByKeyword(@Param("keyword") String keyword);

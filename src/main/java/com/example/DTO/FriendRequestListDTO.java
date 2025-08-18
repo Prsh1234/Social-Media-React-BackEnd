@@ -4,6 +4,8 @@ public class FriendRequestListDTO {
     private Long requestId;
     private String userName;
     private String profilePic; // optional Base64 image
+    private int senderId;
+    private int receiverId;
 
     private int mutual;
 
@@ -36,5 +38,21 @@ public class FriendRequestListDTO {
 
     public void setMutual(int mutual) {
         this.mutual = mutual;
+    }
+
+    public int getSenderId() {
+        return senderId;
+    }
+
+    public void setSenderId(int senderId) {
+        this.senderId = senderId;
+    }
+
+    public int getReceiverId() {
+        return receiverId;
+    }
+
+    public void setReceiverId(int receiverId) {
+        this.receiverId = receiverId;
     }
 }

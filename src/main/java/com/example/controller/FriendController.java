@@ -276,4 +276,55 @@ public class FriendController {
         public boolean isSuccess() { return success; }
         public String getMessage() { return message; }
     }
+
+    @GetMapping("/status")
+    public ResponseEntity<Map<String, Object>> getFriendStatus(
+            @RequestParam int currentUserId,
+            @RequestParam int otherUserId
+    ) {
+        User currentUser = userRepository.findById(currentUserId).orElse(null);
+        User otherUser = userRepository.findById(otherUserId).orElse(null);
+
+        if (currentUser == null || otherUser == null) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "status", "user-not-found"
+            ));
+        }
+
+        // 1️⃣ Check if they are friends
+        boolean areFriends = friendRepository.existsByUserAndFriend(currentUser, otherUser)
+                || friendRepository.existsByUserAndFriend(otherUser, currentUser);
+        if (areFriends) {
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "status", "friend"
+            ));
+        }
+
+        // 2️⃣ Check if a friend request exists
+        FriendRequest sent = friendRequestRepository.findBySenderAndReceiver(currentUser, otherUser).orElse(null);
+        FriendRequest received = friendRequestRepository.findBySenderAndReceiver(otherUser, currentUser).orElse(null);
+
+        if (sent != null) {
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "status", "request-sent",
+                    "requestId", sent.getId()
+            ));
+        } else if (received != null) {
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "status", "request-received",
+                    "requestId", received.getId()
+            ));
+        }
+
+        // 3️⃣ No relationship
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "status", "not-friend"
+        ));
+    }
+
 }
