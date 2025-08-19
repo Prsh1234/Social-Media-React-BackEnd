@@ -9,6 +9,10 @@ import com.example.model.User;
 import com.example.repository.*;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -57,17 +61,25 @@ public class PostController {
 
 
     @GetMapping("/byuser")
-    public ResponseEntity<List<UserPostDTO>> getPostsByUser(@RequestParam int posterId) {
-        List<Post> posts = pRepo.findByUserId(posterId);
+    public ResponseEntity<List<UserPostDTO>> getPostsByUser(
+            @RequestParam int posterId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size) {
 
-        List<UserPostDTO> postDTOs = posts.stream()
-                .filter(post -> !rRepo.existsByPostId(post.getId())) // exclude reported
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<Post> postsPage = pRepo.findByUserId(posterId, pageable);
+
+        List<UserPostDTO> postDTOs = postsPage.stream()
+                .filter(post -> !rRepo.existsByPostId(post.getId())) // exclude reported posts
                 .map(post -> {
                     UserPostDTO dto = new UserPostDTO();
                     dto.setId(post.getId());
                     dto.setContent(post.getContent());
                     dto.setUserName(post.getUser().getUserName());
                     dto.setPosterId(post.getUser().getId());
+                    dto.setLikeCount(lRepo.countByPostId(post.getId()));
+                    dto.setLiked(lRepo.findByUserIdAndPostId(posterId, post.getId()).isPresent());
+                    dto.setTimestamp(post.getCreatedAt());
 
                     if (post.getUser().getProfilePic() != null) {
                         dto.setProfilePic(Base64.getEncoder().encodeToString(post.getUser().getProfilePic()));
@@ -76,13 +88,19 @@ public class PostController {
                         dto.setImageBase64(Base64.getEncoder().encodeToString(post.getImage()));
                     }
                     return dto;
-                }).toList();
+                })
+                .toList();
 
         return ResponseEntity.ok(postDTOs);
     }
 
+
     @GetMapping("/timelineposts")
-    public ResponseEntity<List<UserPostDTO>> getTimeline(@RequestParam int userId) {
+    public ResponseEntity<List<UserPostDTO>> getTimeline(
+            @RequestParam int userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size) {
+
         List<Friend> friends = fRepo.findByUserIdOrFriendId(userId, userId);
 
         Set<Integer> userIds = new HashSet<>();
@@ -95,10 +113,11 @@ public class PostController {
             }
         }
 
-        List<Post> posts = pRepo.findByUserIdInOrderByCreatedAtDesc(userIds);
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<Post> postsPage = pRepo.findByUserIdIn(userIds, pageable);
 
-        List<UserPostDTO> postDTOs = posts.stream()
-                .filter(post -> !rRepo.existsByPostId(post.getId())) // exclude reported
+        List<UserPostDTO> postDTOs = postsPage.stream()
+                .filter(post -> !rRepo.existsByPostId(post.getId()))
                 .map(post -> {
                     UserPostDTO dto = new UserPostDTO();
                     dto.setId(post.getId());
@@ -107,7 +126,7 @@ public class PostController {
                     dto.setPosterId(post.getUser().getId());
                     dto.setLikeCount(lRepo.countByPostId(post.getId()));
                     dto.setLiked(lRepo.findByUserIdAndPostId(userId, post.getId()).isPresent());
-
+                    dto.setTimestamp(post.getCreatedAt());
                     if (post.getUser().getProfilePic() != null) {
                         dto.setProfilePic(Base64.getEncoder().encodeToString(post.getUser().getProfilePic()));
                     }
@@ -119,6 +138,7 @@ public class PostController {
 
         return ResponseEntity.ok(postDTOs);
     }
+
 
     @DeleteMapping("/deletepost")
     @Transactional

@@ -1,5 +1,7 @@
 package com.example.controller;
 
+import com.example.DTO.UserPostDTO;
+import com.example.model.Friend;
 import com.example.model.Post;
 import com.example.model.Report;
 import com.example.model.User;
@@ -8,13 +10,9 @@ import com.example.repository.ReportRepository;
 import com.example.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/post")
@@ -63,6 +61,8 @@ public class ReportController {
                 "success", true,
                 "message", "Post reported successfully"
         ));
+
+
     }
 
 }

@@ -1,5 +1,7 @@
 package com.example.DTO;
 
+import java.time.LocalDateTime;
+
 public class UserPostDTO {
     private int id;
     private int posterId;
@@ -7,6 +9,7 @@ public class UserPostDTO {
     private String userName;
     private String imageBase64; // optional Base64 image
     private String profilePic; // optional Base64 image
+    private LocalDateTime timestamp;
 
     private int likeCount;
     private boolean liked;
@@ -54,5 +57,13 @@ public class UserPostDTO {
 
     public void setLiked(boolean liked) {
         this.liked = liked;
+    }
+
+    public LocalDateTime getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(LocalDateTime timestamp) {
+        this.timestamp = timestamp;
     }
 }

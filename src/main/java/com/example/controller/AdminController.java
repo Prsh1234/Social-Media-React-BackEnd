@@ -1,8 +1,13 @@
 package com.example.controller;
 
+import com.example.DTO.ReportDTO;
 import com.example.DTO.UserDTO;
+import com.example.DTO.UserPostDTO;
 import com.example.model.Post;
+import com.example.model.Report;
 import com.example.model.User;
+import com.example.repository.PostRepository;
+import com.example.repository.ReportRepository;
 import com.example.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +22,10 @@ import java.util.Map;
 public class AdminController {
     @Autowired
     private UserRepository uRepo;
+    @Autowired
+    private ReportRepository reportRepository;
+    @Autowired
+    private PostRepository pRepo;
 
     @GetMapping("/users")
     public ResponseEntity<List<UserDTO>> getUsers(@RequestParam int adminId) {
@@ -58,4 +67,72 @@ public class AdminController {
                 "message", "User deleted successfully"
         ));
     }
+    @DeleteMapping("/deletepost/{id}")
+    public ResponseEntity<?> deletePost(@PathVariable int id) {
+        Post post = pRepo.findById(id).orElse(null);
+        if (post == null) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Post not found"
+            ));
+        }
+
+        pRepo.delete(post);
+
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Post deleted successfully"
+        ));
+    }
+    @DeleteMapping("/deletereport/{id}")
+    public ResponseEntity<?> deleteReport(@PathVariable int id) {
+        Report report = reportRepository.findById(id).orElse(null);
+        if (report == null) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Report not found"
+            ));
+        }
+
+        reportRepository.delete(report);
+
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Report deleted successfully"
+        ));
+    }
+    @GetMapping("/allreports")
+    public ResponseEntity<List<ReportDTO>> getAllReports() {
+        List<Report> reports = reportRepository.findAll();
+
+        List<ReportDTO> reportDTOs = reports.stream().map(r -> {
+            ReportDTO dto = new ReportDTO();
+            dto.setId(r.getId());
+            dto.setReporterId(r.getReporter().getId());
+            dto.setReporterName(r.getReporter().getUserName());
+            dto.setCreatedAt(r.getCreatedAt());
+
+            // build UserPostDTO from Post
+            Post post = r.getPost();
+            UserPostDTO postDTO = new UserPostDTO();
+            postDTO.setId(post.getId());
+            postDTO.setPosterId(post.getUser().getId());
+            postDTO.setUserName(post.getUser().getUserName());
+            postDTO.setContent(post.getContent());
+
+            if (post.getUser().getProfilePic() != null) {
+                postDTO.setProfilePic(Base64.getEncoder().encodeToString(post.getUser().getProfilePic()));
+            }
+            if (post.getImage() != null) {
+                postDTO.setImageBase64(Base64.getEncoder().encodeToString(post.getImage()));
+            }
+
+            dto.setUserPostDTO(postDTO);
+
+            return dto;
+        }).toList();
+
+        return ResponseEntity.ok(reportDTOs);
+    }
+
 }
