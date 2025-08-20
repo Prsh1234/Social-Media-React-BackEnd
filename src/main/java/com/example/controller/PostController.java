@@ -36,7 +36,7 @@ public class PostController {
     private ReportRepository rRepo;
 
     @PostMapping(value = "/contentpost", consumes = {"multipart/form-data"})
-    public ResponseEntity<String> postContent(@RequestParam("content") String content,
+    public ResponseEntity<UserPostDTO> postContent(@RequestParam("content") String content,
                                               @RequestParam("userId") int userId,
                                               @RequestParam(value = "image", required = false) MultipartFile image) {
 
@@ -56,7 +56,21 @@ public class PostController {
         }
 
         pRepo.save(post);
-        return ResponseEntity.ok("Post saved successfully!");
+        System.out.println(post.getId());
+        UserPostDTO dto = new UserPostDTO();
+        dto.setId(post.getId());
+        dto.setContent(post.getContent());
+        dto.setUserName(post.getUser().getUserName());
+        dto.setPosterId(post.getUser().getId());
+        dto.setTimestamp(post.getCreatedAt());
+
+        if (post.getUser().getProfilePic() != null) {
+            dto.setProfilePic(Base64.getEncoder().encodeToString(post.getUser().getProfilePic()));
+        }
+        if (post.getImage() != null) {
+            dto.setImageBase64(Base64.getEncoder().encodeToString(post.getImage()));
+        }
+        return ResponseEntity.ok(dto);
     }
 
 
@@ -68,7 +82,6 @@ public class PostController {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         Page<Post> postsPage = pRepo.findByUserId(posterId, pageable);
-
         List<UserPostDTO> postDTOs = postsPage.stream()
                 .filter(post -> !rRepo.existsByPostId(post.getId())) // exclude reported posts
                 .map(post -> {
@@ -114,7 +127,7 @@ public class PostController {
         }
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        Page<Post> postsPage = pRepo.findByUserIdIn(userIds, pageable);
+        Page<Post> postsPage = pRepo.findByUserIdInOrderByCreatedAtDesc(userIds, pageable);
 
         List<UserPostDTO> postDTOs = postsPage.stream()
                 .filter(post -> !rRepo.existsByPostId(post.getId()))

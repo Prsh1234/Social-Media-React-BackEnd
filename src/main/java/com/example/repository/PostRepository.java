@@ -15,7 +15,7 @@ import java.util.Set;
 @Repository
 public interface PostRepository extends JpaRepository<Post, Integer> {
     Page<Post> findByUserId(int userId, Pageable pageable);
-    Page<Post> findByUserIdIn(Set<Integer> userIds, Pageable pageable);
+    Page<Post> findByUserIdInOrderByCreatedAtDesc(Set<Integer> userIds, Pageable pageable);
 
     List<Post> findByUserIdInOrderByCreatedAtDesc(Collection<Integer> userIds);
 }
