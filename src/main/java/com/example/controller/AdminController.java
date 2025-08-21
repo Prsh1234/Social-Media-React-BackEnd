@@ -5,11 +5,13 @@ import com.example.DTO.UserDTO;
 import com.example.DTO.UserPostDTO;
 import com.example.model.Post;
 import com.example.model.Report;
+import com.example.model.Role;
 import com.example.model.User;
 import com.example.repository.PostRepository;
 import com.example.repository.ReportRepository;
 import com.example.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -61,12 +63,30 @@ public class AdminController {
     @DeleteMapping("/deleteuser/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable int id) {
         User user = uRepo.findById(id).orElse(null);
+
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+                    "success", false,
+                    "message", "User not found"
+            ));
+        }
+
+        // Prevent deleting admins
+        if (user.getRole() == Role.ADMIN) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
+                    "success", false,
+                    "message", "Admin users cannot be deleted"
+            ));
+        }
+
         uRepo.delete(user);
+
         return ResponseEntity.ok(Map.of(
                 "success", true,
                 "message", "User deleted successfully"
         ));
     }
+
     @DeleteMapping("/deletepost/{id}")
     public ResponseEntity<?> deletePost(@PathVariable int id) {
         Post post = pRepo.findById(id).orElse(null);
