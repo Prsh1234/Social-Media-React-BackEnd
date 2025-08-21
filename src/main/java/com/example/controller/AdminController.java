@@ -140,6 +140,7 @@ public class AdminController {
             postDTO.setUserName(post.getUser().getUserName());
             postDTO.setContent(post.getContent());
 
+
             if (post.getUser().getProfilePic() != null) {
                 postDTO.setProfilePic(Base64.getEncoder().encodeToString(post.getUser().getProfilePic()));
             }
