@@ -1,6 +1,7 @@
 package com.example.controller;
 
 import com.example.DTO.UserDTO;
+import com.example.model.Role;
 import com.example.model.User;
 import com.example.repository.FriendRepository;
 import com.example.repository.FriendRequestRepository;
@@ -182,5 +183,27 @@ public class UserController {
         return ResponseEntity.ok(userDTOs);
     }
 
+    @DeleteMapping("/deleteuser/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable int id) {
+        User user = uRepo.findById(id).orElse(null);
+
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+                    "success", false,
+                    "message", "User not found"
+            ));
+        }
+
+        uRepo.delete(user);
+
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "User deleted successfully"
+        ));
+    }
+
+
 
 }
+
+

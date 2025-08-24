@@ -33,7 +33,6 @@ public class AdminController {
     public ResponseEntity<List<UserDTO>> getUsers(@RequestParam int adminId) {
         User currentUser = uRepo.findById(adminId).orElse(null);
         if (currentUser == null||currentUser.getRole().name().equals("USER")) {
-            System.out.println(currentUser.getRole().name());
             return ResponseEntity.badRequest().body(List.of());
         }
         List<User> allUsers = uRepo.findAll();

@@ -26,7 +26,6 @@ public class RegisterController {
         Optional<User> existingUser = uRepo.findByEmail(u.getEmail());
 
         if (existingUser.isPresent()) {
-            System.out.println("User Exists");
             return new ApiResponse(false, "Email already signed up");
         }
         // Hash password

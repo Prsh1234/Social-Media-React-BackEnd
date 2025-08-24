@@ -56,7 +56,6 @@ public class PostController {
         }
 
         pRepo.save(post);
-        System.out.println(post.getId());
         UserPostDTO dto = new UserPostDTO();
         dto.setId(post.getId());
         dto.setContent(post.getContent());

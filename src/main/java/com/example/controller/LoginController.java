@@ -37,7 +37,6 @@ public class LoginController {
                     .body(Map.of("error", "Invalid email or password"));
         }
         String token = jwtUtil.generateToken(user.getEmail());
-        System.out.println(user.getRole().name());
         return ResponseEntity.ok(Map.of(
                 "token", token,
                 "userId", user.getId(),

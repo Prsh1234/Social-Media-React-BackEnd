@@ -35,7 +35,6 @@ public class FriendController {
     public ResponseEntity<?> sendFriendRequest(@RequestBody FriendRequestDTO request) {
         int senderId = request.getSenderId();
         int receiverId = request.getReceiverId();
-        System.out.println(senderId+""+receiverId);
         if (senderId == receiverId) {
             return ResponseEntity.badRequest().body(
                     new ApiResponse(false, "You cannot send a friend request to yourself")
@@ -125,7 +124,6 @@ public class FriendController {
 
     @PostMapping("/acceptrequest")
     public ResponseEntity<?> acceptFriendRequest(@RequestParam int requestId) {
-        System.out.println(requestId);
         // 1. Find the friend request
         FriendRequest friendRequest = friendRequestRepository.findById(requestId).orElse(null);
         if (friendRequest == null) {
