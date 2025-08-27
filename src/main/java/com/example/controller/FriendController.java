@@ -98,6 +98,7 @@ public class FriendController {
                     FriendRequestListDTO dto = new FriendRequestListDTO();
                     dto.setRequestId(req.getId());
                     dto.setUserName(sender.getUserName());
+                    dto.setSenderId(sender.getId());
                     if (sender.getProfilePic() != null) {
                         dto.setProfilePic(Base64.getEncoder().encodeToString(sender.getProfilePic()));
                     }
